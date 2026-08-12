@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PrivateRagDynamoDataAndVectorSearch",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:SearchVectors",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": "arn:aws:dynamodb:*:*:table/private-rag-*-*"
+    },
+    {
+      "Sid": "PrivateRagDocumentObjects",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::private-rag-*-documents/private/*"
+    },
+    {
+      "Sid": "PrivateRagDocumentBucketCors",
+      "Effect": "Allow",
+      "Action": ["s3:GetBucketCors", "s3:PutBucketCors"],
+      "Resource": "arn:aws:s3:::private-rag-*-documents"
+    },
+    {
+      "Sid": "PrivateRagBedrockModels",
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel"],
+      "Resource": [
+        "arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0",
+        "arn:aws:bedrock:*::foundation-model/amazon.titan-embed-text-v2:0"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudFormationForPrivateRag",
+      "Effect": "Allow",
+      "Action": ["cloudformation:CreateStack", "cloudformation:UpdateStack", "cloudformation:DeleteStack", "cloudformation:DescribeStacks", "cloudformation:DescribeStackEvents", "cloudformation:DescribeStackResources", "cloudformation:GetTemplate", "cloudformation:CreateChangeSet", "cloudformation:DescribeChangeSet", "cloudformation:ExecuteChangeSet", "cloudformation:DeleteChangeSet"],
+      "Resource": "arn:aws:cloudformation:*:${aws:PrincipalAccount}:stack/PrivateRag-*/*"
+    },
+    {
+      "Sid": "CdkBootstrapLookupAndAssets",
+      "Effect": "Allow",
+      "Action": ["cloudformation:DescribeStacks", "s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload", "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage", "ecr:DescribeRepositories", "sts:AssumeRole"],
+      "Resource": "*",
+      "Condition": {"StringLike": {"aws:ResourceTag/aws:cloudformation:stack-name": "CDKToolkit"}}
+    },
+    {
+      "Sid": "ProvisionPrivateRagResources",
+      "Effect": "Allow",
+      "Action": ["amplify:*", "apigateway:*", "cognito-idp:*", "dynamodb:*", "kms:*", "lambda:*", "logs:*", "s3:*", "secretsmanager:*", "sqs:*", "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:PassRole", "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:TagRole", "iam:UntagRole"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadGoogleOidcSecret",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"],
+      "Resource": "arn:aws:secretsmanager:*:${aws:PrincipalAccount}:secret:private-rag/*/google-oidc*"
+    }
+  ]
+}

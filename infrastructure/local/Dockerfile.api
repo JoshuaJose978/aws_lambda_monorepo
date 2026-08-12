@@ -1,0 +1,8 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir boto3==1.43.64 "PyJWT[crypto]==2.10.1" pypdf==5.1.0 python-docx==1.1.2
+COPY services ./services
+ENV PYTHONPATH=/app/services/api/src:/app/services/common/src:/app/services/ingestion/src
+CMD ["python", "-m", "rag_api.local_server"]
