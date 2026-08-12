@@ -1,0 +1,17 @@
+.env
+.env.local
+.DS_Store
+.idea/
+.vscode/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.pyright/
+*.pyc
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+cdk.out/
+infrastructure/lambda-layer/python/*
+!infrastructure/lambda-layer/python/.gitkeep

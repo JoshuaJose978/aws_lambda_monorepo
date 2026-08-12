@@ -1,0 +1,13 @@
+.git
+.venv
+.ruff_cache
+.pytest_cache
+.pyright
+cdk.out
+**/__pycache__
+**/*.pyc
+**/node_modules
+**/dist
+apps/web/*.tsbuildinfo
+.env
+.env.local

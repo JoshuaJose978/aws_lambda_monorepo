@@ -1,0 +1,90 @@
+services:
+  localstack:
+    image: localstack/localstack:3.8.1
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: lambda,apigateway
+      DEFAULT_REGION: ${AWS_REGION:-us-east-1}
+      DEBUG: "0"
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - ${CONTAINER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal sts get-caller-identity"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/local/Dockerfile.api
+    ports:
+      - "3000:3000"
+    environment:
+      APP_ENV: local
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      DYNAMODB_CHAT_TABLE: ${DYNAMODB_CHAT_TABLE:-}
+      DYNAMODB_DOCUMENTS_TABLE: ${DYNAMODB_DOCUMENTS_TABLE:-}
+      DYNAMODB_VECTOR_INDEX_NAME: ${DYNAMODB_VECTOR_INDEX_NAME:-ChunksByEmbedding}
+      DOCUMENT_BUCKET: ${DOCUMENT_BUCKET:-}
+      MODEL_PROVIDER: bedrock
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-amazon.nova-lite-v1:0}
+      EMBEDDING_MODEL_ID: ${EMBEDDING_MODEL_ID:-amazon.titan-embed-text-v2:0}
+      OIDC_ISSUER: http://localhost:8080/realms/rag-local
+      OIDC_JWKS_URL: http://keycloak:8080/realms/rag-local/protocol/openid-connect/certs
+      OIDC_CLIENT_ID: rag-web
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:3000/health\")'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/local/Dockerfile.web
+    ports:
+      - "5173:5173"
+    environment:
+      CI: "true"
+      VITE_API_BASE_URL: http://localhost:3000
+      VITE_OIDC_ISSUER: http://localhost:8080/realms/rag-local
+      VITE_OIDC_CLIENT_ID: rag-web
+    depends_on:
+      api:
+        condition: service_healthy
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - ./infrastructure/keycloak:/opt/keycloak/data/import:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+  jenkins:
+    profiles: ["jenkins"]
+    image: jenkins/jenkins:lts-jdk17
+    ports:
+      - "8081:8080"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/login"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+volumes:
+  localstack-data:
+  jenkins-data:
